@@ -45,6 +45,7 @@ import Test.QuickCheck hiding -- for re-export
   , verboseCheckAll
   )
 
+import Control.Exception
 import Data.Typeable
 import Data.List
 import Text.Printf
@@ -206,7 +207,9 @@ instance IsTest QC where
       replayMsg = makeReplayMsg replaySeed maxSize
 
     -- Quickcheck already catches exceptions, no need to do it here.
-    r <- testRunner args prop
+    r <- testRunner args prop `catch` \e -> do
+      putStrLn ("Interrupted. " ++ replayMsg)
+      throwIO (e :: SomeAsyncException)
 
     qcOutput <- formatMessage $ QC.output r
     let qcOutputNl =
